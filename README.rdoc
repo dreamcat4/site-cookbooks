@@ -1,13 +1,13 @@
--- Descr
+== Descr
 
 These are a mixture of overridden and new recipies for Dreamcat4 ontop of the opscode cookbooks.
 
--- Branch
+== Branch
 
 * opscode/master - the upstream opscode cookbooks
 * dreamcat4      - user specific customizations working HEAD
 * master         - general improvements for going back upstream
 
--- Copyright
+== Copyright
 
 Copyright (c) dreamcat4 2009 under Apache License
