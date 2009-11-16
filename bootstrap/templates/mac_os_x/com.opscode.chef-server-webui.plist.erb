@@ -1,0 +1,25 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!DOCTYPE plist PUBLIC "-//Apple Computer//DTD PLIST 1.0//EN"
+"http://www.apple.com/DTDs/PropertyList-1.0.dtd" >
+<plist version='1.0'>
+<dict>
+	<key>Label</key><string>com.opscode.chef-server-webui</string>
+	<key>ProgramArguments</key>
+	<array>
+		<!-- <string>/opt/local/bin/ruby</string> -->
+		<string><%= @unicorn_path %></string>
+		<string>-c</string>
+		<string>unicorn.config</string>
+		<string>-d</string>
+	</array>
+	<key>RunAtLoad</key><true/>
+	<!-- ondemand ?? -->
+	<!-- <key>UserName</key>
+	<string>chef</string> -->
+	<!-- <key>GroupName</key>
+	<string>chef</string> -->
+	<key>StandardOutPath</key><string><%= @node[:bootstrap][:chef][:server_log] %></string>
+	<key>WorkingDirectory</key>
+	<string>/etc/chef/<%= @startup_dir %></string>
+</dict>
+</plist>

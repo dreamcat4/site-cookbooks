@@ -1,0 +1,52 @@
+#!/bin/sh
+### BEGIN INIT INFO
+# Provides:          chef-restart
+# Required-Start:    $all
+# Required-Stop:
+# Default-Start:     S
+# Default-Stop:
+# Short-Description: Continue a chef run after a sucessful reboot
+# Description:       This is a temporary script and called 1 time, 
+#                    during the middle of a chef run. Chef has
+#                    installed some service(s) that require a reboot,
+#                    and must finish installing those services after
+#                    the reboot.
+### END INIT INFO
+
+set -e
+
+test -f <%= @chef_continue_run %> || exit 1
+
+if [ -f /lib/lsb/init-functions ]; then
+    . /lib/lsb/init-functions
+else
+    log_action_begin_msg () {
+	echo -n "$@... "
+    }
+
+    log_action_end_msg () {
+	if [ "$1" -eq 0 ]; then 
+	    echo done.
+	else
+	    echo failed.
+	fi
+    }
+fi
+
+case "$1" in
+    stop)
+        # chef-restart isn't a daemon
+        ;;
+    start|force-reload|restart|reload)
+    log_action_begin_msg "Continuing chef-run"
+    if <%= @run_login_shell %> 2>&1 > <%= @log_file %>; then
+		log_action_end_msg 0
+    else
+		log_action_end_msg $?
+    fi
+	;;
+    *)
+        echo 'Usage: /etc/init.d/chef-restart {start|reload|restart|force-reload|stop}'
+        exit 1
+        ;;
+esac

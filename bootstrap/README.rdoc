@@ -1,158 +1,155 @@
-= WARNING, YES, RLY!!
-This is an alpha (or pre-alpha even) version of a bootstrap for Chef 0.8.0, which is also in a alpha release. Unless you're ready to solve perplexing bugs and deal with general alpha-release issues, stick to the GA 0.7.x series.
-
-Since gems for Chef 0.8 are not available from the regular sources, start by cloning chef 0.8 from github and running '[sudo] rake install' then add this bootstrap to chef-solo's json and run chef-solo.
-
-Also, the below information is for the 0.7.x series; some of it is wrong.
 = DESCRIPTION:
 
 This cookbook bootstraps a Chef client or server when Chef is installed via RubyGems. If installing Chef from OS distribution packages, please see the 'chef' cookbook. 
 
-= REQUIREMENTS:
+= Installing chef-0.8a
 
-This cookbook requires Chef installed from RubyGems. Chef v0.7.10, for attribute syntax.
+1. Set your hostname!
+   'hostname -f' should return an FQDN (fully-qualified domain name) including a dot and a subdomain. For example 'localhost.localdomain' or 'localhost.local'. So your /etc/hosts file might look like this:
+	# the ordering of hostname aliases seems to matter. Use hostname -f to test
+	127.0.0.1 localhost.localdomain chef.localdomain chef localhost
+	255.255.255.255	broadcasthost
+	::1 localhost.localdomain chef.localdomain chef localhost
+	fe80::1%lo0	localhost
+2. Install ruby
+   You may not wish to use the stock ruby that comes with your OS.
+   * Note - currently chef-0.8a isnt compatible with ruby1.9 and there may be the odd issue with 1.8.7. This is primarily because chef is developed by people running Ruby Enterprise Edition (REE). Oh well.
+   * Either 
+	a) Install REE 1.8.6 or
+	b) Ruby 1.9.1p243+ (not supported yet)
+3. Install rubygems
+4. Install git-core
 
-== Platform:
+= Install the chef-0.8.0 ruby gems
 
-Server bootstrap is tested on Ubuntu 9.10, 9.04, 8.10 and 8.04, Debian 5.0.
+Chef 0.8 isn't officially available from a Rubygems repository yet. But the command would be;
 
-Client bootstrap is tested on the above, plus CentOS 5.3, Fedora 10, OpenBSD 4.6, FreeBSD 7.1 and Gentoo. OpenSolaris 11 is also tested, but there's a bug in Ohai that requires some manual intervention (OHAI-122).
+	gem install chef chef-server chef-client chef-solr
 
-== Cookbooks:
+We can clone chef from github instead. Then install it with the rake task.
 
-Opscode cookbooks, http://github.com/opscode/cookbooks:
+	gem install <gem deps ???>
+	git clone git://github.com/opscode/chef.git
+	cd chef && sudo rake install
 
-Both clients and servers:
+= Checkout chef-repo
 
-* runit
+On development machine
 
-Servers only:
+	github fork opscode/chef-repo
+	git clone git@github.com:$USER/chef-repo.git
+	sudo mkdir /srv && sudo ln -s $PWD/chef-repo /srv/chef
 
-* couchdb
-* stompserver
+Populate cookbooks and site-cookbooks. Its better to use git submodules for this.
 
-The couchdb and stompserver recipes may be somewhat naive depending on the platform. You should view them online at the github repository to see if your platform is supported. If not, you'll need to manually install them, and remove the "include_recipe" statements from the bootstrap::server recipe.
+	cd chef-repo
+	rm -Rf cookbooks site-cookbooks
+	git clone git://github.com/opscode/cookbooks.git
+	
+	github fork opscode/site-cookbooks
+	git clone git@github.com:$USER/site-cookbooks.git site-cookbooks
+	# you may develop your own cookbooks repo in site-cookbooks
 
-= ATTRIBUTES:
 
-Attributes are under 'bootstrap[:chef]' - eg: 'bootstrap[:chef][:client_version]'. You may wish to change some of these locations to customize for your environment. For the bootstrap process this is done with a JSON data file passed to chef-solo.
+= Backup
 
-== url_type
+At this point its generally worthwhile to take a Disk Image. Ie just prior to running the bootstrap command. This way you can re-image other machines and use the prepped image for either server or client node(s). Depending upon your IT infrastructure, the backup may be through one of several methods. Personally I prefer either VirtualBox/VMWare Disk images, or RackSpace 'Cloud Servers' disk images. Amazon Web Services (AWS) also has a good solution which is used by Opscode here.
 
-Set up the URLs the client should connect to with this. Default is 'http', which tells the client to connect to 'http://server:4000'. If you set up your chef-server to use an SSL front-end, set this to 'https' and the URLs will be 'https://server/'. 
+= Run the bootstrap
 
-== init_style
+At the moment these files are in the bootstrap cookbook. I'd ideally like to see them move to the official opscode chef-repo/config directory instead.
 
-Specifies the init style to use. Default 'runit'. Other possible values 'init', 'bsd', any other string will be treated as unknown.
+	cd /srv/chef/site-cookbooks/bootstrap/files/default/
+	# may be otherwise: cd /srv/chef/config
+	
+	# maybe chef-solo should allow cmd-line options for querying and setting the attributes here?
+	# it would need to query the bottstrap attributes in some knife-esp manner. Wishful thinking.
 
-If your platform doesn't have a 'runit' package or if the cookbook doesn't detect it, but you stil want to use runit, set init_style to 'none' and install runit separately.
+The chef-solo command takes 2 arguments:
 
-== path
+	chef-solo -c config.rb -j chef.json
 
-This is the base location where chef will store its associated data. Default '/srv/chef' for RubyGems installed systems. The location preference varies by platform. The default is a filesystem hiearchy standard suggestion[1]. Some other locations you may consider, by platform:
+You configure the chef-solo program with solo.rb. But seperately you set the attributes for your chef installation in the .json file. Chef-solo will then run the bootstrap recipie from the cookbooks directory with the attributes you have selected.
 
-Debian and Red Hat based Linux distros (Ubuntu, CentOS, Fedora, etc):
+	# Clients:
+	sudo chef-solo -c solo.rb -j bootstrap-client.json
 
-* /var/lib/chef
+	# Servers:
+	sudo chef-solo -c solo.rb -j bootstrap-server.json
 
-Any BSD and Gentoo:
+=== Remember to set hostname first!
 
-* /var/chef
+'hostname -f' should return an FQDN (fully-qualified domain name) including a dot and a subdomain. For example 'localhost.localdomain' or 'localhost.local'. If you are tunneling your connections over ssh, then a localhost domain should be fine. Your /etc/hosts file might look like this:
 
-== run_path
+	# the ordering of hostname aliases seems to matter. Use hostname -f to test
+	127.0.0.1 localhost.localdomain chef.localdomain chef localhost
+	255.255.255.255	broadcasthost
+	::1 localhost.localdomain chef.localdomain chef localhost
+	fe80::1%lo0	localhost
 
-Location for pidfiles on systems using init scripts. Default '/var/run/chef'.
 
-If init_style is 'init', this is used, and should match what the init script itself uses for the PID files.
+== Bootstrap will...
 
-== cache_path
+The client bootstrap recipie will:
 
-Location where the client will cache cookbooks and other data. Default is 'cache' underneath the bootstrap[:chef][:path] location. Some Linux distributions might prefer /var/cache/chef instead.
+* Install chef configuration files into /etc/chef/
+* Generate validation token,certificates,keys and put them in /etc/chef
 
-== serve_path
+Plus the chef-server bootstrap will:
 
-Used by the Chef server as the base location to "serve" cookbooks, roles and other assets. Default is /srv/chef.
+* Patch couchdb plist file
+* Install these runtime dependancies:
+	couchdb
+	erlang
+	rabbitmq-server
+* Configure nanite with rabbitmq
 
-== server_version, client_version
+== 0.8 installed! What next?
 
-Set the version of the Gems to install. This can be used to upgrade Chef automatically[0]. The chef gems are not managed by the Opscode Chef cookbook, however.
+Chef 0.8 has a simple user account type of authentication model. Each authorized chef user is known as a `chef client`. And is accessible through the new `Clients` tab in the webui interface. In the chef authentication model, the chef-server holds the public key for the account, and *you* (or the remote client program) hold the private rsa signing key. You sign API requests to the server with your private key. When they reach the server they are checked against the corresponding public key. This is stored in couchdb as a list of registered clients. So in this model we can have groups of users (either real people or other kinds of chef programs) all sharing the same private key. Or individual users each with their own unique key.
 
-== client_interval
+= Setup Knife
 
-Number of seconds to run chef-client periodically. Default '1800' (30 minutes).
+We need to sort out the client access keys and set up our knife command line tool.
 
-== client_splay
+* Booting up the chef-server should create a system admin account called `chef-webui`. By default you should not need to touch these settings.
+	Chef::Config[:web_ui_client_name] = "chef-webui"
+	Chef::Config[:web_ui_key] = "/etc/chef/webui.pem"
 
-Splay interval to randomly add to interval. Default '20'.
+* The chef-server bootup code will also create the file `/etc/chef/webui.pem`. Webui.pem is a 2048bit rsa private key. You will need this file for the next command so copy it to your local filesystem if your workstation / administration machine is different from the chef-server machine.
+	sudo ls -lsa /etc/chef/webui.pem
 
-== log_dir
+* Create a seperate account for the `knife` commandline tool. We will use the webui rsa key account to do this. Just the first time we use knife, we shall use sudo.
+	# Create a new admin client called `knife`
+	sudo OPSCODE_USER="chef-webui" OPSCODE_KEY=/etc/chef/webui.pem \
+	knife create_client --client=knife --key=$HOME/.ssh/knife.pem --admin
+	sudo chown $USER ~/.ssh/knife.pem
+	chmod 600 ~/.ssh/knife.pem
 
-Directory where logs are stored if logs are not sent to STDOUT. Systems using runit should send logs to STDOUT as runit manages log output. Default '/var/log/chef'.
+* Now add the following lines to your ~/.profile or ~/.barshrc
+	# Opscode knife
+	export OPSCODE_USER="knife"
+	export OPSCODE_KEY=$HOME/.ssh/knife.pem
 
-== client_log, indexer_log, server_log
+* Restart the terminal or `source ~/.profile`. From now on we do not need to use `sudo` anymore to invoke knife. And we may create further client accounts if required. For example to create a client account called `owphy` we would:
+	knife create_client --client=owphy --key=/home/owphy/.ssh/owphy.pem --admin
 
-Location of the client, indexer and server logs, respectively. Default 'STDOUT' on systems with runit, '/var/log/chef/{client,indexer,server}.log' on other systems.
+* Use `knife --help` to see all the other possible commanline options.
 
-== server_fqdn
+NOTE:
+* Don't use or alter the validation account `chef-validator`. Its a special system account and may not be suitable for general api access.
+* There are situations where the keypair can be re-generated in chef-server. So the `client.pem` stored on disk can become out of sync with the server's public key. This issue appears as an Authorization failure.
+* If you create a non-admin account, then requests from that account may also be rejected with very similar looking `Unauthorized` messages. Don't forget to specify the `--admin` flag to specify if you do want to an administration account. (the default is false).
+* If the client account is not recognised or deleted, then trying to access the chef-server will return a similar `authorization rejected` exception / failure.
+* In those circumstances its usually best just to start from scratch and re-create the broken accounts.
 
-Fully qualified domain name of the server. Default is the current node's fqdn as detected by Ohai. For clients, set this to the hostname of your environment's Chef Server.
+=== What next?
 
-== server_token
-
-The validation_token used to automatically authorize chef-clients. Default is a random string generated every time chef-solo runs. Use chef-client -t 'validation_token' to automatically validate the client.
-
-[0] http://blog.opscode.com/2009/08/cool-chef-tricks-upgrade-chef-with-chef.html
-[1] http://www.pathname.com/fhs/
-
-= USAGE:
-
-Opscode stores this cookbook and some others (see the requirements above) on S3. Use chef-solo:
-
-    sudo chef-solo -j chef.json -c solo.rb -r http://s3.amazonaws.com/chef-solo/bootstrap-latest.tar.gz
-
-You set the attributes through the chef.json file, and tell Solo where to put them with solo.rb.
-
-== Clients:
-
-Common attributes you may wish to adjust for the client:
-
-{
-  "bootstrap": {
-    "chef": {
-      "url_type": "http",
-      "init_style": "runit",
-      "path": "/srv/chef",
-      "server_fqdn": "localhost.localdomain",
-    }
-  },
-  "recipes": "bootstrap::client"
-}
-
-== Servers:
-
-Common attributes you may wish to adjust for the server:
-
-{
-  "bootstrap": {
-    "chef": {
-      "url_type": "http",
-      "init_style": "runit",
-      "path": "/srv/chef",
-      "serve_path": "/srv/chef",
-      "server_fqdn": "localhost.localdomain",
-    }
-  },
-  "recipes": "bootstrap::server"
-}
-
-Note that the server recipe includes the client recipe as well, since we recommend managing the chef-server with Chef.
-
-For more information on usage and next steps, please see the Chef wiki.
-
-    http://wiki.opscode.com/display/chef/Home
+Its then a case of performing the same bootstrap proceedure again on new client node, and registering that node to the already-running chef-server. In other words, the chef-server is like your control centre. A proper client bootstrap *should* (in theory) then power up the chef-client as a background service. And automatically register itself to the server the first run (downloading recipies, roles, runlist whatever). We believe that it should be possible to provision nodes anonymously to one of a set of pre-defined roles. (eg webserver, data server, proxy/loadbalancer/gateway). Node attributes can then be set in json (or though knife / chef api) and used to globally configure service roles.
 
 = LICENSE and AUTHOR:
 
+Author:: Dreamcat Four <dreamcat4@gmail.com>
 Author:: Joshua Timberman <joshua@opscode.com>
 Author:: Joshua Sierles <joshua@37signals.com>
 

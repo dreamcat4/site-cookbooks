@@ -15,6 +15,7 @@ supports          "ubuntu", ">= 8.10" # for package in APT
 supports          "debian", ">= 5.0" # for package in APT
 supports          "openbsd"
 supports          "freebsd"
+supports          "mac_os_x"
 
 %w{ rhel centos fedora }.each do |os|
   supports os # requires EPEL Yum Repository

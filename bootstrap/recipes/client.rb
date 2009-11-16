@@ -20,6 +20,7 @@
 root_group = value_for_platform(
   "openbsd" => { "default" => "wheel" },
   "freebsd" => { "default" => "wheel" },
+  "mac_os_x"  => { "default" => "admin" },
   "default" => "root"
 )
 
@@ -29,7 +30,7 @@ end
 
 case node[:bootstrap][:chef][:init_style]
 when "runit"
-  client_log = node[:bootstrap][:chef][:client_log]
+  client_log = "\"#{node[:bootstrap][:chef][:client_log]}\""
   show_time  = "false"
   include_recipe "runit"
   runit_service "chef-client"
@@ -50,13 +51,21 @@ when "init"
 
   Chef::Log.info("You specified service style 'init'.")
   Chef::Log.info("'init' scripts available in #{node[:languages][:ruby][:gems_dir]}/gems/chef-#{node[:bootstrap][:chef][:client_version]}/distro")
+when "launchd"
+  client_log = "\"#{node[:bootstrap][:chef][:client_log]}\""
+  show_time  = "false"
+  # Chef::Log.info("You specified service style 'launchd'. You will need to install the relevant plist file for chef-client.")
+  # Chef::Log.info("Hint: chef-client -i #{node[:bootstrap][:chef][:client_interval]} -s #{node[:bootstrap][:chef][:client_splay]}")
+  service "chef-client" do
+    action :nothing
+  end
 when "bsd"
-  client_log = node[:bootstrap][:chef][:client_log]
+  client_log = "\"#{node[:bootstrap][:chef][:client_log]}\""
   show_time  = "false"
   Chef::Log.info("You specified service style 'bsd'. You will need to set up your rc.local file.")
   Chef::Log.info("Hint: chef-client -i #{node[:bootstrap][:chef][:client_interval]} -s #{node[:bootstrap][:chef][:client_splay]}")
 else
-  client_log = node[:bootstrap][:chef][:client_log]
+  client_log = "\"#{node[:bootstrap][:chef][:client_log]}\""
   show_time  = "false"
   Chef::Log.info("Could not determine service init style, manual intervention required to start up the client service.")
 end
@@ -73,6 +82,13 @@ chef_dirs.each do |dir|
     group root_group
     mode "755"
   end
+end
+
+# For knife to work for wheel group
+file node[:bootstrap][:chef][:client_log] do
+  owner "root"
+  group root_group
+  mode "664"
 end
 
 template "/etc/chef/client.rb" do

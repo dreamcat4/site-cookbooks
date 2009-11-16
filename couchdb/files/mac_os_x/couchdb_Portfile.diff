@@ -1,0 +1,10 @@
+--- Portfile.orig	2009-11-17 11:34:30.000000000 +0000
++++ Portfile	2009-11-17 11:31:32.000000000 +0000
+@@ -36,6 +36,7 @@
+ set logdir ${prefix}/var/log/couchdb
+ set dbdir ${prefix}/var/lib/couchdb
+ set plistdir /Library/LaunchDaemons
++set startupitem.uniquname org.apache.couchdb
+ 
+ post-destroot {
+     addgroup ${dbgroup}

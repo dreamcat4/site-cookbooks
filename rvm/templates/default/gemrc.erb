@@ -1,0 +1,11 @@
+--- 
+gem: <%= @node[:rvm][:gem][:string] %>
+:backtrace: <%= @node[:rvm][:gem][:backtrace] %>
+:benchmark: false
+:update_sources: true
+:verbose: <%= @node[:rvm][:gem][:verbose] %>
+:bulk_threshold: 1000
+:sources: 
+<% @node[:rvm][:gem][:sources].each do |source| %>
+- <%= source %>
+<% end %>

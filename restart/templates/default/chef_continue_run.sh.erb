@@ -1,0 +1,65 @@
+#!/usr/bin/env <%= @shell %>
+echo ""
+echo "Continuing chef run - DATE: `date`"
+echo "Cookbook: <%= @cookbook_name %>, Recipe: <%= @recipe_name %>"
+echo ""
+
+# Environment
+<%= @env_vars %>
+
+# Boot script modification time 1
+eval set `stat -s <%= @bootscript_symlink %>`
+bootscript_symlink_mtime1=$st_mtime
+
+# Continuing chef run
+cd "<%= @working_directory %>"
+<% if @sudo_nopasswd %>
+sudo -E <%= @cmd %>
+<% else %>
+<%= @cmd %>
+<% end %>
+
+retval=$?
+if [ "$retval" != 0 ]; then
+	echo ""
+	echo "There has been some problem completing this chef run"
+	echo "Please consult ther error log, and correct the problem."
+	echo "Then execute 'sudo <%= @chef_continue_run %>' to continue the run."
+	echo ""
+	echo "Otherwise, execute the following command to abandon this chef run:"
+	echo "sudo rm -f <%= @bootscript_symlink %>"
+	echo "sudo rm -rf <%= @temp_path %>"
+	exit $retval
+
+else
+	# Boot script modification time 1
+	eval set `stat -s <%= @bootscript_symlink %>`
+	bootscript_symlink_mtime2=$st_mtime
+	wait_reboot=`test "$bootscript_symlink_mtime1" -lt "$bootscript_symlink_mtime2"`
+
+	if [ "$wait_reboot" ]; then
+		# If further reboots
+		exit $retval
+		
+	else
+		# Clean up afterwards
+		<% if @sudo_nopasswd %>
+		sudo rm -f <%= @bootscript_symlink %>
+		<% else %>
+		rm -f <%= @bootscript_symlink %>
+		<% end %>
+		<%= @rc_disable %>
+		<% if @remove_files %>
+		<% if @sudo_nopasswd %>
+		sudo rm -f <%= @temp_path %>
+		<% else %>
+		rm -f <%= @temp_path %>
+		<% end %>
+		<% end %>
+		exit $retval	
+	fi
+fi
+
+
+
+

@@ -1,0 +1,8 @@
+{
+	"sandbox": {
+		"test": {
+			"some_arrribute": "some text"
+		}
+	},
+	"recipes": [ "sandbox", "sandbox::test" ]
+}

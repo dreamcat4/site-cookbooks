@@ -1,0 +1,10 @@
+
+# This is where rvm installs and manages everything in by default.
+rvm_path=<%= @node[:rvm][:path] %>
+
+# install rvm symlink to this path
+rvm_symlink_path=<%= @node[:rvm][:symlink_path] %>
+
+# Architecture is determined by `uname -m`. Usually either i386 or x86_64
+rvm_archflags="-arch <%= @node[:rvm][:architecture] || `uname -m`.strip! %>"
+

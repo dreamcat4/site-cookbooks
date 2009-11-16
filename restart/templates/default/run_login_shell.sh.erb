@@ -1,0 +1,12 @@
+#!/usr/bin/env <%= @shell %>
+
+# shell with the '-l' (--login) flag
+# ie source the appropriate profile files, rc files and log in
+
+<% if @sudo_nopasswd %>
+su -m <%= @user %> -c "/usr/bin/env <%= @shell %> -l -c <%= @chef_continue_run %>"
+<% else %>
+/usr/bin/env <%= @shell %> -l -c <%= @chef_continue_run %>
+<% end %>
+
+

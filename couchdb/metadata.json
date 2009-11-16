@@ -1,45 +1,17 @@
 {
-  "maintainer": "Opscode, Inc.",
-  "description": "Installs CouchDB package and starts service",
-  "recommendations": {
+  "version": "0.8.0",
+  "attributes": {
 
-  },
-  "maintainer_email": "cookbooks@opscode.com",
-  "recipes": {
-    "couchdb": ""
   },
   "suggestions": {
 
   },
-  "platforms": {
-    "rhel": [
-
-    ],
-    "freebsd": [
-
-    ],
-    "ubuntu": [
-      ">= 8.10"
-    ],
-    "openbsd": [
-
-    ],
-    "fedora": [
-
-    ],
-    "centos": [
-
-    ],
-    "debian": [
-      ">= 5.0"
-    ]
-  },
-  "version": "0.8.0",
-  "name": "couchdb",
+  "license": "Apache 2.0",
+  "maintainer_email": "cookbooks@opscode.com",
   "conflicting": {
 
   },
-  "attributes": {
+  "dependencies": {
 
   },
   "providing": {
@@ -47,12 +19,46 @@
 
     ]
   },
-  "license": "Apache 2.0",
-  "long_description": "Installs the CouchDB package if it is available from an package repository on\nthe node. If the package repository is not available, CouchDB needs to be \ninstalled via some other method, either a backported package, or compiled \ndirectly from source. CouchDB is available on Red Hat-based systems through\nthe EPEL Yum Repository.\n",
+  "description": "Installs CouchDB package and starts service",
   "replacing": {
 
   },
-  "dependencies": {
+  "recipes": {
+    "couchdb": ""
+  },
+  "groupings": {
 
-  }
+  },
+  "long_description": "Installs the CouchDB package if it is available from an package repository on\nthe node. If the package repository is not available, CouchDB needs to be \ninstalled via some other method, either a backported package, or compiled \ndirectly from source. CouchDB is available on Red Hat-based systems through\nthe EPEL Yum Repository.\n",
+  "name": "couchdb",
+  "recommendations": {
+
+  },
+  "platforms": {
+    "rhel": [
+
+    ],
+    "openbsd": [
+
+    ],
+    "debian": [
+      ">= 5.0"
+    ],
+    "fedora": [
+
+    ],
+    "centos": [
+
+    ],
+    "mac_os_x": [
+
+    ],
+    "freebsd": [
+
+    ],
+    "ubuntu": [
+      ">= 8.10"
+    ]
+  },
+  "maintainer": "Opscode, Inc."
 }

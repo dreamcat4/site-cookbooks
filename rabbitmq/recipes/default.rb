@@ -23,13 +23,28 @@
 # Is this valid for all platforms? Is it not just rabbitmq on some platform?
 # Valid for ubuntu, *probably* debian and EL5
 # http://download.fedora.redhat.com/pub/epel/5/x86_64/repoview/letter_r.group.html
+
+if platform?("mac_os_x")
+  include_recipe "erlang"
+end
+
 package "rabbitmq-server"
 
 service "rabbitmq-server" do
   if platform?("centos","redhat","fedora")
     start_command "/sbin/service rabbitmq-server start &> /dev/null"
     stop_command "/sbin/service rabbitmq-server stop &> /dev/null"
+    supports [ :restart, :status ]
+    action [ :enable, :start ]
+
+  elsif platform?("mac_os_x")
+    # start_command "launchctl load -w /Library/LaunchDaemons/org.macports.rabbitmq-server.plist &> /dev/null"
+    # stop_command "launchctl unload -w /Library/LaunchDaemons/org.macports.rabbitmq-server.plist &> /dev/null"
+    start_command "port load rabbitmq-server &> /dev/null;:"
+    stop_command "port unload rabbitmq-server &> /dev/null;:"
+    action [ :start ]
+  else
+    supports [ :restart, :status ]
+    action [ :enable, :start ]
   end
-  supports [ :restart, :status ]
-  action [ :enable, :start ]
 end

@@ -1,0 +1,12 @@
+{
+	"bootstrap": {
+		"chef": {
+			"url_type": "http",
+			"init_style": "runit",
+			"path": "/srv/chef",
+			"serve_path": "/srv/chef",
+			"server_fqdn": "localhost.localdomain"
+		}
+	},
+	"recipes": [ "rvm", "bootstrap::server" ]
+}

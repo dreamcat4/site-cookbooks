@@ -1,0 +1,3 @@
+{
+	"recipes": [ "restart::example" ]
+}

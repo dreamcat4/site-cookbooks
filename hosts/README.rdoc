@@ -1,0 +1,10 @@
+= DESCRIPTION:
+
+Configure /etc/hosts file
+
+= REQUIREMENTS:
+
+= ATTRIBUTES: 
+
+= USAGE:
+

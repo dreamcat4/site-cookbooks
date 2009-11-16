@@ -1,0 +1,36 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!DOCTYPE plist PUBLIC "-//Apple Computer//DTD PLIST 1.0//EN"
+"http://www.apple.com/DTDs/PropertyList-1.0.dtd" >
+<plist version='1.0'>
+<dict>
+	<key>Label</key><string><%= @label %></string>
+	<!-- <key>EnvironmentVariables</key>
+	<dict>
+		<key>PATH</key>
+		<string>/path/to/ruby</string>
+		<key>GEM_PATH</key>
+		<string>/path/to/gems</string>
+	</dict> -->
+	<key>ProgramArguments</key>
+	<array>
+		<!-- <string>/usr/bin/env</string>
+		<string>ruby</string> -->
+		<string><%= @unicorn_path %></string>
+		<string>-c</string>
+		<string><%= @unicorn_config %></string>
+		<string>-E</string>
+		<string><%= @environment %></string>
+		<string>-d</string>
+	</array>
+	<key>RunAtLoad</key><<%= @run_at_load %>/>
+	<!-- ondemand ?? -->
+	<!-- <key>UserName</key><string>chef</string> -->
+	<!-- <key>GroupName</key><string>chef</string> -->
+	<key>StandardOutPath</key><string><%= @standard_out_path %></string>
+	<key>WorkingDirectory</key><string><%= @working_directory %></string>
+</dict>
+</plist>
+
+<!-- 
+ -->
+

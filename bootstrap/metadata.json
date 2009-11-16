@@ -1,48 +1,35 @@
 {
-  "maintainer": "Opscode, Inc.",
-  "description": "Configures RubyGems-installed Chef",
-  "recommendations": {
+  "version": "0.1.0",
+  "attributes": {
 
-  },
-  "maintainer_email": "cookbooks@opscode.com",
-  "recipes": {
-    "bootstrap::client": "",
-    "bootstrap": "",
-    "bootstrap::server": ""
   },
   "suggestions": {
 
   },
-  "platforms": {
-    "freebsd": [
-
-    ],
-    "ubuntu": [
-
-    ],
-    "openbsd": [
-
-    ],
-    "fedora": [
-
-    ],
-    "centos": [
-
-    ],
-    "redhat": [
-
-    ],
-    "debian": [
-
-    ]
-  },
-  "version": "0.1.0",
-  "name": "bootstrap",
+  "license": "Apache 2.0",
+  "maintainer_email": "cookbooks@opscode.com",
   "conflicting": {
 
   },
-  "attributes": {
+  "dependencies": {
+    "nanite": [
 
+    ],
+    "stompserver": [
+
+    ],
+    "runit": [
+
+    ],
+    "couchdb": [
+
+    ],
+    "apache2": [
+
+    ],
+    "rabbitmq": [
+
+    ]
   },
   "providing": {
     "bootstrap": [
@@ -55,26 +42,48 @@
 
     ]
   },
-  "license": "Apache 2.0",
-  "long_description": "= DESCRIPTION:\n\nThis cookbook bootstraps a Chef client or server when Chef is installed via RubyGems. If installing Chef from OS distribution packages, please see the 'chef' cookbook. \n\n= REQUIREMENTS:\n\nThis cookbook requires Chef installed from RubyGems. Chef v0.7.10, for attribute syntax.\n\n== Platform:\n\nServer bootstrap is tested on Ubuntu 9.10, 9.04, 8.10 and 8.04, Debian 5.0.\n\nClient bootstrap is tested on the above, plus CentOS 5.3, Fedora 10, OpenBSD 4.6, FreeBSD 7.1 and Gentoo. OpenSolaris 11 is also tested, but there's a bug in Ohai that requires some manual intervention (OHAI-122).\n\n== Cookbooks:\n\nOpscode cookbooks, http:\/\/github.com\/opscode\/cookbooks:\n\nBoth clients and servers:\n\n* runit\n\nServers only:\n\n* couchdb\n* stompserver\n\nThe couchdb and stompserver recipes may be somewhat naive depending on the platform. You should view them online at the github repository to see if your platform is supported. If not, you'll need to manually install them, and remove the \"include_recipe\" statements from the bootstrap::server recipe.\n\n= ATTRIBUTES:\n\nAttributes are under 'bootstrap[:chef]' - eg: 'bootstrap[:chef][:client_version]'. You may wish to change some of these locations to customize for your environment. For the bootstrap process this is done with a JSON data file passed to chef-solo.\n\n== url_type\n\nSet up the URLs the client should connect to with this. Default is 'http', which tells the client to connect to 'http:\/\/server:4000'. If you set up your chef-server to use an SSL front-end, set this to 'https' and the URLs will be 'https:\/\/server\/'. \n\n== init_style\n\nSpecifies the init style to use. Default 'runit'. Other possible values 'init', 'bsd', any other string will be treated as unknown.\n\nIf your platform doesn't have a 'runit' package or if the cookbook doesn't detect it, but you stil want to use runit, set init_style to 'none' and install runit separately.\n\n== path\n\nThis is the base location where chef will store its associated data. Default '\/srv\/chef' for RubyGems installed systems. The location preference varies by platform. The default is a filesystem hiearchy standard suggestion[1]. Some other locations you may consider, by platform:\n\nDebian and Red Hat based Linux distros (Ubuntu, CentOS, Fedora, etc):\n\n* \/var\/lib\/chef\n\nAny BSD and Gentoo:\n\n* \/var\/chef\n\n== run_path\n\nLocation for pidfiles on systems using init scripts. Default '\/var\/run\/chef'.\n\nIf init_style is 'init', this is used, and should match what the init script itself uses for the PID files.\n\n== cache_path\n\nLocation where the client will cache cookbooks and other data. Default is 'cache' underneath the bootstrap[:chef][:path] location. Some Linux distributions might prefer \/var\/cache\/chef instead.\n\n== serve_path\n\nUsed by the Chef server as the base location to \"serve\" cookbooks, roles and other assets. Default is \/srv\/chef.\n\n== server_version, client_version\n\nSet the version of the Gems to install. This can be used to upgrade Chef automatically[0]. The chef gems are not managed by the Opscode Chef cookbook, however.\n\n== client_interval\n\nNumber of seconds to run chef-client periodically. Default '1800' (30 minutes).\n\n== client_splay\n\nSplay interval to randomly add to interval. Default '20'.\n\n== log_dir\n\nDirectory where logs are stored if logs are not sent to STDOUT. Systems using runit should send logs to STDOUT as runit manages log output. Default '\/var\/log\/chef'.\n\n== client_log, indexer_log, server_log\n\nLocation of the client, indexer and server logs, respectively. Default 'STDOUT' on systems with runit, '\/var\/log\/chef\/{client,indexer,server}.log' on other systems.\n\n== server_fqdn\n\nFully qualified domain name of the server. Default is the current node's fqdn as detected by Ohai. For clients, set this to the hostname of your environment's Chef Server.\n\n== server_token\n\nThe validation_token used to automatically authorize chef-clients. Default is a random string generated every time chef-solo runs. Use chef-client -t 'validation_token' to automatically validate the client.\n\n[0] http:\/\/blog.opscode.com\/2009\/08\/cool-chef-tricks-upgrade-chef-with-chef.html\n[1] http:\/\/www.pathname.com\/fhs\/\n\n= USAGE:\n\nOpscode stores this cookbook and some others (see the requirements above) on S3. Use chef-solo:\n\n    sudo chef-solo -j chef.json -c solo.rb -r http:\/\/s3.amazonaws.com\/chef-solo\/bootstrap-latest.tar.gz\n\nYou set the attributes through the chef.json file, and tell Solo where to put them with solo.rb.\n\n== Clients:\n\nCommon attributes you may wish to adjust for the client:\n\n{\n  \"bootstrap\": {\n    \"chef\": {\n      \"url_type\": \"http\",\n      \"init_style\": \"runit\",\n      \"path\": \"\/srv\/chef\",\n      \"server_fqdn\": \"localhost.localdomain\",\n    }\n  },\n  \"recipes\": \"bootstrap::client\"\n}\n\n== Servers:\n\nCommon attributes you may wish to adjust for the server:\n\n{\n  \"bootstrap\": {\n    \"chef\": {\n      \"url_type\": \"http\",\n      \"init_style\": \"runit\",\n      \"path\": \"\/srv\/chef\",\n      \"serve_path\": \"\/srv\/chef\",\n      \"server_fqdn\": \"localhost.localdomain\",\n    }\n  },\n  \"recipes\": \"bootstrap::server\"\n}\n\nNote that the server recipe includes the client recipe as well, since we recommend managing the chef-server with Chef.\n\nFor more information on usage and next steps, please see the Chef wiki.\n\n    http:\/\/wiki.opscode.com\/display\/chef\/Home\n\n= LICENSE and AUTHOR:\n\nAuthor:: Joshua Timberman <joshua@opscode.com>\nAuthor:: Joshua Sierles <joshua@37signals.com>\n\nCopyright 2008-2009, Opscode, Inc\nCopyright 2009, 37signals\n\nLicensed under the Apache License, Version 2.0 (the \"License\");\nyou may not use this file except in compliance with the License.\nYou may obtain a copy of the License at\n\n    http:\/\/www.apache.org\/licenses\/LICENSE-2.0\n\nUnless required by applicable law or agreed to in writing, software\ndistributed under the License is distributed on an \"AS IS\" BASIS,\nWITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.\nSee the License for the specific language governing permissions and\n",
+  "description": "Configures RubyGems-installed Chef",
   "replacing": {
 
   },
-  "dependencies": {
-    "rabbitmq": [
+  "recipes": {
+    "bootstrap": "",
+    "bootstrap::client": "",
+    "bootstrap::server": ""
+  },
+  "groupings": {
+
+  },
+  "long_description": "= WARNING, INSTRUCTIONS HEAVILY MODIFIED FOR OS-X\n= WARNING, YES, RLY!!\nThis is an alpha (or pre-alpha even) version of a bootstrap for Chef 0.8.0, which is also in a alpha release. Unless you're ready to solve perplexing bugs and deal with general alpha-release issues, stick to the GA 0.7.x series.\n\n= DESCRIPTION:\n\nThis cookbook bootstraps a Chef client or server when Chef is installed via RubyGems. If installing Chef from OS distribution packages, please see the 'chef' cookbook. \n\n== Platform:\n\nServer bootstrap is tested on Ubuntu 9.10, 9.04, 8.10 and 8.04, Debian 5.0.\n\nClient bootstrap is tested on the above, plus CentOS 5.3, Fedora 10, OpenBSD 4.6, FreeBSD 7.1 and Gentoo. OpenSolaris 11 is also tested, but there\u2019s a bug in Ohai that requires some manual intervention (OHAI-122).\n\n== Installing chef-0.8a\n\n1. Set your hostname!\n\n'hostname -f' should return an FQDN (fully-qualified domain name) including a dot and a subdomain. For example 'localhost.localdomain' or 'localhost.local'. So your /etc/hosts file might look like this:\n\n\t# the ordering of hostname aliases seems to matter. Use hostname -f to test\n\t127.0.0.1 localhost.localdomain chef.localdomain chef localhost\n\t255.255.255.255\tbroadcasthost\n\t::1 localhost.localdomain chef.localdomain chef localhost\n\tfe80::1%lo0\tlocalhost\n\n\n== Install ruby\n\nYou may not wish to use the stock Matz ruby (MRI) 1.8.7p72 that come with Snow Leopard.\n\n* So Either \n\ta) Install REE 1.8.6 or \n\tb) 1.9.1p243+ is recommended\n\n* Note - currently chef-0.8a isnt compatible with any ruby1.9.\n  But for future please consider ruby 1.9.1 as generally its faster than REE.\n\n=== Install base rubygems\n\n\tsudo port install rb-rubygems\n\techo \"gem: --no-rdoc --no-ri\"\" >> $HOME/.gemrc\n\tgem install gemcutter && gem tumble\n\tgem install github\n\tgem sources --add http://gems.opscode.com\n\n=== Install git\n\n=== Install chef0.8a gems\n\nChef 0.8 isn't officially available from Rubygems yet. The command would be\n\n\tgem install chef chef-server chef-client chef-solr\n\nWe can install the chef gems from source instead\n\n\tgem install <gem deps ???>\n\tgit clone git://github.com/opscode/chef.git\n\tcd chef && sudo rake install\n\n=== Checkout chef-repo (on development machine)\n\n\tgithub fork opscode/chef-repo\n\tgit clone git@github.com:$USER/chef-repo.git\n\tsudo mkdir /srv && sudo ln -s $PWD/chef-repo /srv/chef\n\nPopulate cookbooks and site-cookbooks. Its better to use git submodules for this.\n\n\tcd chef-repo\n\trm -Rf cookbooks site-cookbooks\n\tgit clone git://github.com/opscode/cookbooks.git\n\t\n\tgithub fork opscode/site-cookbooks\n\tgit clone git@github.com:$USER/site-cookbooks.git site-cookbooks\n\t# you may develop your own cookbooks repo in site-cookbooks\n\n\n=== Backup\n\nAt this point its generally worthwhile to take a Disk Image. Ie just prior to running the bootstrap command. This way you can re-image other machines and use the prepped image for either server or client node(s). Depending upon your IT infrastructure, the backup may be through one of several methods. Personally I prefer either VirtualBox/VMWare Disk images, or RackSpace 'Cloud Servers' disk images. Amazon Web Services (AWS) also has a good solution which is used by Opscode here.\n\n=== Run chef-solo with bootstrap files\n\nAt the moment these files are in the bootstrap cookbook. I'd ideally like to see them move to the official opscode chef-repo/config directory instead.\n\n\tcd /srv/chef/site-cookbooks/bootstrap/files/default/\n\t# may be otherwise: cd /srv/chef/config\n\t\n\t# maybe chef-solo should allow cmd-line options for querying and setting the attributes here?\n\t# it would need to query the bottstrap attributes in some knife-esp manner. Wishful thinking.\n\nThe chef-solo command takes 2 arguments:\n\n\tchef-solo -c config.rb -j chef.json\n\nYou configure the chef-solo program with solo.rb. But seperately you set the attributes for your chef installation in the .json file. Chef-solo will then run the bootstrap recipie from the cookbooks directory with the attributes you have selected.\n\n\t# Clients:\n\tsudo chef-solo -c solo.rb -j bootstrap-client.json\n\n\t# Servers:\n\tsudo chef-solo -c solo.rb -j bootstrap-server.json\n\nRemember to set your hostname first!\n\n'hostname -f' should return an FQDN (fully-qualified domain name) including a dot and a subdomain. For example 'localhost.localdomain' or 'localhost.local'. If you are tunneling your connections over ssh, then a localhost domain should be fine. Your /etc/hosts file might look like this:\n\n\t# the ordering of hostname aliases seems to matter. Use hostname -f to test\n\t127.0.0.1 localhost.localdomain chef.localdomain chef localhost\n\t255.255.255.255\tbroadcasthost\n\t::1 localhost.localdomain chef.localdomain chef localhost\n\tfe80::1%lo0\tlocalhost\n\n\n=== What happens next...\n\nThe client bootstrap recipie will:\n\n* Install chef configuration files into /etc/chef/\n* Generate validation token,certificates,keys and put them in /etc/chef\n\nPlus the chef-server bootstrap will:\n\n* Patch couchdb plist file\n* Install these runtime dependancies:\n\tcouchdb\n\terlang\n\trabbitmq-server\n* Configure nanite with rabbitmq\n\nIts then a case of performing the same bootstrap proceedure again on new client node, and registering that node to the already-running chef-server. In other words, the chef-server is like your control centre. A proper client bootstrap *should* (in theory) then power up the chef-client as a background service. And automatically register itself to the server the first run (downloading recipies, roles, runlist whatever). We believe that it should be possible to provision nodes anonymously to one of a set of pre-defined roles. (eg webserver, data server, proxy/loadbalancer/gateway). Node attributes can then be set in json (or though knife / chef api) and used to globally configure service roles.\n\n= LICENSE and AUTHOR:\n\nAuthor:: Dreamcat Four <dreamcat4@gmail.com>\nAuthor:: Joshua Timberman <joshua@opscode.com>\nAuthor:: Joshua Sierles <joshua@37signals.com>\n\nCopyright 2008-2009, Opscode, Inc\nCopyright 2009, 37signals\n\nLicensed under the Apache License, Version 2.0 (the \"License\");\nyou may not use this file except in compliance with the License.\nYou may obtain a copy of the License at\n\n    http://www.apache.org/licenses/LICENSE-2.0\n\nUnless required by applicable law or agreed to in writing, software\ndistributed under the License is distributed on an \"AS IS\" BASIS,\nWITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.\nSee the License for the specific language governing permissions and\n",
+  "name": "bootstrap",
+  "recommendations": {
+
+  },
+  "platforms": {
+    "openbsd": [
 
     ],
-		"nanite": [
-		
-		],
-    "runit": [
+    "debian": [
 
     ],
-    "couchdb": [
+    "fedora": [
 
     ],
-    "apache2": [
+    "centos": [
+
+    ],
+    "mac_os_x": [
+
+    ],
+    "freebsd": [
+
+    ],
+    "ubuntu": [
+
+    ],
+    "redhat": [
 
     ]
-  }
+  },
+  "maintainer": "Opscode, Inc."
 }

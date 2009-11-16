@@ -1,0 +1,106 @@
+= DESCRIPTION:
+
+This cookbook provides a resource for restarting a chef-run mid-way. When a `restart` resource is encountered, it will check whether it has restarted there previously. The restart can be at various levels depending which "restart context" was specified. The "chef" restart context will re-execute chef by forking a new process. The "login_shell" method will re-run chef from whole new login shell, also re-executing the all .profile, bashrc, etc. Finally The "node" restart context will perform a reboot of the entire operating system. The chef run will continue from that point, automatically at next boot.
+
+= REQUIREMENTS:
+
+* The CHEF-828 patch on mixlib-cli. Simply won't work without it
+
+* restart "chef", restart "login_shell"
+   - Should work for any *nix platform
+
+* restart "node"
+   - Requires a temporary folder to write the boot scripts to 
+   - supported  platforms: ubuntu, debian (sys V init), mac_os_x (launchd).
+   - boot scripts require superuser privelidges (eg sudo)
+   - nodes can be set for reboot manually or automatically
+   - choose your preferred options in cookbooks/restart/attributes/restart.rb
+
+= ATTRIBUTES: 
+
+* Recipe attributes
+
+    # For restart "node" context
+    node[:restart][:temp_path] = "/var/tmp/chef-restart"
+    node[:restart][:log_file]  = "/var/log/chef/solo.log"
+    node[:restart][:preserve_environment]     = false
+    node[:restart][:reboot_unattended]        = false
+    node[:restart][:cleanup_temp_path]        = true
+    node[:restart][:use_sudo_nopasswd]        = true
+    node[:restart][:raise_on_mounted_volumes] = true
+    node[:restart][:use_runit] # not implemented
+
+* Resource attributes
+
+    context        - The thing to restart. Can be "chef", "login_shell" or "node" (context=name, default)
+    shell          - Bypass shell detection for "node" and "login_shell" methods. eg "tcsh", "zsh" 
+    creates        - creates "file". Do not restart if "file" exists
+    before_restart - A shell cmd (as string) or recipe code (ruby block). For a "node" restart,
+                     all the reboot scripts are written before this block is executed.
+                     Use as a guard around commands which may trigger a system reboot.
+
+
+= Resctrictions - Important!!:
+
+* General (watch out!!)
+   - We have tested in chef-solo only!! (for bootstrap)
+   - Theres no detection or handling of other background running chef processes or daemons. until then we recommend that users take-down their chef-client services  temporarily, and re-enable them after reboot / successful chef-solo run completion there may be an option to enable/disable the other chef services in the runscript
+
+* Usage in recipes (very few restrictions)
+   - You can put a restart point anywhere in your chef recipes
+   - You can put any recipe code (ruby code + other resources) inside a `before_restart` block
+   - You can include any other recipe withing a restart_block, even if that recipe also has a restart declaration (nested restarts are allowed).
+
+* Node restarts (system reboot) 
+   - Generally speaking, you cannot reboot into chef-solo / chef-client when there are files on mounted volumes, such as NFS, SAMBA, SSHFS. Or encrypted filesystems such as FileVault. There is not really any guarantee that such volumes will be mounted and available to chef during the next boot cycle. Use the recipe attribute to ignore / disable.
+
+* Node restarts - if the chef run fails for any reason
+   - the whole run is deemed invalid, and the boot scripts folder deleted
+   - execution must begin again from the beginning of the recipe, not from the last restart point
+   - not_if, only_if and "creates" will still be respected, so any already completed actions will skipped over and not be repeated
+   - we think this is safer, in case you had gone in, edited your recipes and moved about the restart points
+
+= USAGE:
+
+Typically, we need to restart when chef (or one of our chef recipes) reles and depends upon some essential software update which was initialed earlier on in our recipes. Perhaps requiring a system reboot.
+
+Or something altered the `/etc/profile`, `/etc/bashrc` etc a therefore requires new login shell. Well, just `restart "login_shell"` then. Job done.
+
+You can restart the chef process with `restart "chef"`. However that won't change the environment variables or source the bashrc again. You just get a new process after the old one has exited.
+
+    restart "forking a new chef process" do
+      context "chef"
+    end
+    
+    restart "login_shell" do
+      shell "zsh"
+      creates "#{ENV['HOME']}/.zshenv"
+    end
+     
+    restart "node" do
+      before_restart do 
+        execute "softwareupdate --install --all"
+      end
+      only_if { `softwareupdate --list` =~ /found the following new or updated software/ }
+    end
+
+
+= FUTURE:
+
+- trap exceptions and somehow rewind the prepare_restart! actions or perhaps just cancel the action and delete all the temporary files
+
+- this cookbook could be merged into the main `chef` cookbook, depending whether you want it there. Just rename attributes from node[:restart][:attr] to node[:chef][:restart][:attr]
+
+- perhaps consider renaming the resource attributes, eg "context" and "before_restart" if theres anything better to label them, (was the best i could come up with)
+
+- determine whether chef-client or chef-server is running in the background and whether it will be running at boot time. Perform (runit|init|launchd) disable / enable of the affected chef service(s) so theres not conficts from multiple clients running simultaneously
+
+- Runit is not currently supported. It would be nice to add support at a later date, perhaps enabling non-sudo "node" restarts. Reason: i just haven't had the opportunity yet to play with runit, and become familiar enough with it.
+
+- potentially other restart contexts are possible going into the future:
+   - for example restart the system's windowmanager / windowserver (managed GUI workstation)
+   - restart into single user mode, for maintenance operation (eg root disk '/' maintenance)
+
+
+
+

@@ -25,11 +25,14 @@ set_unless[:bootstrap][:chef][:url_type]   = "http"
 set_unless[:bootstrap][:chef][:init_style] = "runit"
 set_unless[:bootstrap][:chef][:path]       = "/srv/chef"
 set_unless[:bootstrap][:chef][:run_path]   = "/var/run/chef"
-set_unless[:bootstrap][:chef][:cache_path] = "/#{bootstrap[:chef][:path]}/cache"
+set_unless[:bootstrap][:chef][:cache_path] = "#{bootstrap[:chef][:path]}/cache"
 set_unless[:bootstrap][:chef][:serve_path] = "/srv/chef"
 
-set_unless[:bootstrap][:chef][:server_version]  = "0.7.14"
-set_unless[:bootstrap][:chef][:client_version]  = "0.7.14"
+# These 2 also appear in chef cookbook. Perhaps duplication ?
+# set_unless[:bootstrap][:chef][:server_version]  = "0.7.14"
+# set_unless[:bootstrap][:chef][:client_version]  = "0.7.14"
+set_unless[:bootstrap][:chef][:server_version]  = "0.8.0"
+set_unless[:bootstrap][:chef][:client_version]  = "0.8.0"
 set_unless[:bootstrap][:chef][:client_interval] = "1800"
 set_unless[:bootstrap][:chef][:client_splay]    = "20"
 set_unless[:bootstrap][:chef][:log_dir]         = "/var/log/chef"
@@ -42,6 +45,7 @@ when "runit"
 else
   set_unless[:bootstrap][:chef][:client_log]  = "#{bootstrap[:chef][:log_dir]}/client.log"
   set_unless[:bootstrap][:chef][:server_log]  = "#{bootstrap[:chef][:log_dir]}/server.log"
+  set_unless[:bootstrap][:chef][:server_webui_log]  = "#{bootstrap[:chef][:log_dir]}/server-webui.log"
   set_unless[:bootstrap][:chef][:indexer_log] = "#{bootstrap[:chef][:log_dir]}/indexer.log"
 end
 

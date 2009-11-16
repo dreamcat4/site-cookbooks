@@ -1,0 +1,10 @@
+{
+	"rvm": {
+		"version": "0.1.9",
+		"head": true,
+		"mri_ree_deps": true,
+		"default_ruby": "ree",
+		"dump_gems_latest": true
+	},
+	"recipes": [ "rvm" ]
+}

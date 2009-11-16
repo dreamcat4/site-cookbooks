@@ -23,6 +23,13 @@ when "debian", "ubuntu"
   package erlpkg
   package "erlang-dev"
   package "erlang-manpages"
+when "mac_os_x"
+  package "tcl +quartz" # avoid installing X11 in tcl dependency
+  if node[:platform_version] =~ /10\.6/
+    package "erlang +darwin_10"
+  else
+    package "erlang"
+  end
 else 
   package "erlang"
 end
