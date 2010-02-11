@@ -1,0 +1,67 @@
+#!/usr/bin/env bash
+##############################################################
+# Automatic Update Script, so users can get updates          #
+# if they are not admins on the computer.  By Michael Zeller #
+# Email: mtz9504@gmail.com                                   #
+# Modified for chef by dreamcat4 (dreamcat4@gmail.com)       #
+##############################################################
+
+softwareupdate -l | grep -q restart
+reboot_needed=$?
+
+if [[ $reboot_needed -eq 0 ]] ; then
+	# make it not open
+	chmod 700 /System/Library/CoreServices/Software\ Update.app
+	# Check for new updates
+	/System/Library/CoreServices/Software\ Update.app/Contents/Resources/SoftwareUpdateCheck
+	# Give rights back
+	chmod 755 /System/Library/CoreServices/Software\ Update.app
+
+	# Setup files to install on restart
+	defaults write /Library/Updates/index InstallAtLogout -array `defaults read /Library/Updates/index ProductPaths | grep -v "[{}]" | awk -F "=" '{print $1}' | grep -o "[^\" ]\+"`
+	touch /var/db/.SoftwareUpdateAtLogout
+	touch /var/db/.SoftwareUpdateOptions
+	chmod og-r /var/db/.SoftwareUpdateAtLogout
+else
+	# no reboot needed, update in background
+	softwareupdate -ia
+	exit
+fi
+
+restart_dialog=<<-EOF
+tell application "System Events"
+	activate
+	set question to display dialog "Apple Software Update: New updates downloaded (requires restart)" buttons {"Not now" , "Restart"} default button 2
+	set answer to button returned of question
+	if answer is equal to "Restart" then
+		return 0
+	else
+		error
+	end if
+end tell
+EOF
+
+<% if @automatic_reboot %>
+reboot=0
+<% elsif @prompt_user_reboot %>
+/usr/bin/osascript "$restart_dialog"
+reboot=$?
+<% else %>
+reboot=1
+<% end %>
+
+if [[ $reboot -eq 0 ]] ; then
+	/usr/bin/osascript <<-EOF
+	    tell application "System Events"
+	        activate
+			tell app "Finder" to restart
+	    end tell
+	EOF
+	sleep 60
+	osascript -e 'tell application "System Events" to tell process "SecurityAgent" to click button "Restart" of window 1'
+	sleep 60
+	shutdown -r now
+else
+	exit
+fi
+

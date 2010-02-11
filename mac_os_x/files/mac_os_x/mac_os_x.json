@@ -1,0 +1,17 @@
+{
+	"bootstrap": {
+		"chef": {
+			"url_type": "http",
+			"init_style": "launchd",
+			"path": "/srv/chef",
+			"serve_path": "/srv/chef",
+			"server_fqdn": "localhost.localdomain"
+		}
+	},
+	"mac_os_x": {
+		"swupdate": {
+			"admin_user": null
+		}
+	},
+	"recipes": [ "mac_os_x" ]
+}
